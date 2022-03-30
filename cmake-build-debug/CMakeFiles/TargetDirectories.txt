@@ -1,3 +1,6 @@
 /home/luka/Desktop/projekti/RG_project/cmake-build-debug/CMakeFiles/rebuild_cache.dir
 /home/luka/Desktop/projekti/RG_project/cmake-build-debug/CMakeFiles/edit_cache.dir
 /home/luka/Desktop/projekti/RG_project/cmake-build-debug/CMakeFiles/RG_project.dir
+/home/luka/Desktop/projekti/RG_project/cmake-build-debug/external/glad/CMakeFiles/edit_cache.dir
+/home/luka/Desktop/projekti/RG_project/cmake-build-debug/external/glad/CMakeFiles/rebuild_cache.dir
+/home/luka/Desktop/projekti/RG_project/cmake-build-debug/external/glad/CMakeFiles/glad.dir
