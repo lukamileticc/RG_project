@@ -9,6 +9,6 @@ find_package(OpenGL REQUIRED)
 add_subdirectory(external/glad)
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(RG_project main.cpp include/classes_impl/Shader.h include/stb_image.cpp)
+add_executable(RG_project main.cpp include/classes_impl/Shader.h include/stb_image.cpp include/classes_impl/Camera.h)
 
 target_link_libraries(RG_project glfw glad OpenGL::GL pthread Xrandr X11 Xi dl)

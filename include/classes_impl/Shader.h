@@ -82,6 +82,11 @@ public:
         glUniform1f(varId, v1);
     }
 
+    void setUniformMat4(const char *varName, glm::mat4 &matrix) {
+        int varLock = glGetUniformLocation(m_shaderProgramId,varName);
+        glUniformMatrix4fv(varLock, 1, GL_FALSE, glm::value_ptr(matrix));
+    }
+
 private:
     unsigned  m_shaderProgramId = 0;
 };
