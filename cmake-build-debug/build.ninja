@@ -79,6 +79,13 @@ build CMakeFiles/RG_project.dir/main.cpp.o: CXX_COMPILER__RG_project_Debug /home
   OBJECT_DIR = CMakeFiles/RG_project.dir
   OBJECT_FILE_DIR = CMakeFiles/RG_project.dir
 
+build CMakeFiles/RG_project.dir/include/stb_image.cpp.o: CXX_COMPILER__RG_project_Debug /home/luka/Desktop/projekti/RG_project/include/stb_image.cpp || cmake_object_order_depends_target_RG_project
+  DEP_FILE = CMakeFiles/RG_project.dir/include/stb_image.cpp.o.d
+  FLAGS = -g -std=gnu++17
+  INCLUDES = -I/home/luka/Desktop/projekti/RG_project/include -I/home/luka/Desktop/projekti/RG_project/external/glad/include
+  OBJECT_DIR = CMakeFiles/RG_project.dir
+  OBJECT_FILE_DIR = CMakeFiles/RG_project.dir/include
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target RG_project
@@ -87,7 +94,7 @@ build CMakeFiles/RG_project.dir/main.cpp.o: CXX_COMPILER__RG_project_Debug /home
 #############################################
 # Link the executable RG_project
 
-build RG_project: CXX_EXECUTABLE_LINKER__RG_project_Debug CMakeFiles/RG_project.dir/main.cpp.o | /usr/lib/x86_64-linux-gnu/libglfw.so.3.3 external/glad/libglad.a /usr/lib/x86_64-linux-gnu/libGLX.so /usr/lib/x86_64-linux-gnu/libOpenGL.so || external/glad/libglad.a
+build RG_project: CXX_EXECUTABLE_LINKER__RG_project_Debug CMakeFiles/RG_project.dir/main.cpp.o CMakeFiles/RG_project.dir/include/stb_image.cpp.o | /usr/lib/x86_64-linux-gnu/libglfw.so.3.3 external/glad/libglad.a /usr/lib/x86_64-linux-gnu/libGLX.so /usr/lib/x86_64-linux-gnu/libOpenGL.so || external/glad/libglad.a
   FLAGS = -g
   LINK_LIBRARIES = /usr/lib/x86_64-linux-gnu/libglfw.so.3.3  external/glad/libglad.a  -lpthread  -lXrandr  -lX11  -lXi  -ldl  /usr/lib/x86_64-linux-gnu/libGLX.so  /usr/lib/x86_64-linux-gnu/libOpenGL.so
   OBJECT_DIR = CMakeFiles/RG_project.dir

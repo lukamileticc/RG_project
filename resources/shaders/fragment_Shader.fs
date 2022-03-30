@@ -1,10 +1,16 @@
 #version 330 core
 out vec4 FragColor;
 
-uniform vec4 unColor;
+
+in vec2 TexCords;
+
+uniform sampler2D tex0;
+uniform sampler2D tex1;
+uniform float p;
 
 void main(){
 
-    FragColor = unColor;
+    FragColor = mix(texture(tex0,TexCords), texture(tex1,TexCords), p);
+
 }
 

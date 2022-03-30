@@ -71,6 +71,17 @@ public:
         int varId = glGetUniformLocation(m_shaderProgramId,varName);
         glUniform4f(varId,v1, v2, v3, v4);
     }
+
+    void setUniform1int(const char *varName, int v1) {
+        int varId = glGetUniformLocation(m_shaderProgramId,varName);
+        glUniform1i(varId, v1);
+    }
+
+    void setUniform1Float(const char *varName, float v1) {
+        int varId = glGetUniformLocation(m_shaderProgramId,varName);
+        glUniform1f(varId, v1);
+    }
+
 private:
     unsigned  m_shaderProgramId = 0;
 };

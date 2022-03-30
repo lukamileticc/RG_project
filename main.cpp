@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include "include/classes_impl/Shader.h"
+#include "include/stb_image.h"
 
 #include <iostream>
 #include <cmath>
@@ -44,11 +45,11 @@ int main(){
 
 
     float vertices[] = {
-            //   frist triangle and second triangle
-            0.5f, 0.5f,0.0f, // top right
-            0.5f, -0.5f, 0.0f, //bottom right
-            -0.5f , 0.5f, 0.0f, // top left
-            -0.5f , -0.5f, 0.0f// bottom left
+            //   x   y      z     offset
+            -0.5f , -0.5f, 0.0f, 0.0f, 0.0f, //bottom left
+            0.5f, -0.5f, 0.0f, 1.0f, 0.0f,//bottom right
+            -0.5f,0.5f,0.0f, 0.0f, 1.0f,//top left
+            0.5f, 0.5f, 0.0f, 1.0f, 1.0f //top right
     };
     unsigned  indices[] {
             //frist
@@ -71,10 +72,10 @@ int main(){
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     //ovde kazemo grafickoj sta ti podaci zapravo predstavljaju
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float),(void*)0);
-//    glVertexAttribPointer(1,2, GL_FLOAT, GL_FALSE, 3*sizeof(float),(void*)(3 * sizeof(float)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float),(void*)0);
+    glVertexAttribPointer(1,2, GL_FLOAT, GL_FALSE, 5*sizeof(float),(void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(0);
-//    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(1);
 
     //Deaktiviramo ovaj objekat
     glBindBuffer(GL_ARRAY_BUFFER,0);
@@ -82,27 +83,94 @@ int main(){
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-//    glClearColor(1.0f,0.2f,0.3f,1.0f);
+    //ovde pravimo prvu teksturu
+    unsigned tex0id;
+    glGenTextures(1,&tex0id);
+    glBindTexture(GL_TEXTURE_2D, tex0id);
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+    //ucitavamo teksturu
+    int width, height, nrChannel;
+    unsigned char* data = stbi_load("../resources/textures/container.jpg", &width, &height, &nrChannel, 0);
+
+    if(data){
+        //kacimo na trenutno aktivnu teksturu(objekat) ovaj data
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else{
+        std::cout << "Failed to laod texture!" << std::endl;
+    }
+    stbi_image_free(data);
+
+    //ovde pravimo drugu teksturu
+    unsigned tex1id;
+    glGenTextures(1,&tex1id);
+    glBindTexture(GL_TEXTURE_2D,tex1id);
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    stbi_set_flip_vertically_on_load(true);
+    //ucitavamo teksturu
+    data = stbi_load("../resources/textures/awesomeface.png", &width, &height, &nrChannel, 0);
+
+    if(data){
+        //kacimo na trenutno aktivnu teksturu(objekat) ovaj data
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else{
+        std::cout << "Failed to laod texture!" << std::endl;
+    }
+    stbi_image_free(data);
+
+    ourshader.use();
+    ourshader.setUniform1int("tex0",0);
+    ourshader.setUniform1int("tex1",1);
+
+
+//    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glClearColor(1.0f,0.2f,0.3f,1.0f);
     //petlja renderovanja
     while(!glfwWindowShouldClose(window)){
 
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT);
 
+        //ovde aktiviramo teksturu u svakom frejmu
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, tex0id);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D,tex1id);
+
         ourshader.use();
 
-        //postavljamo vrednost;
-        //treba nam neka glatka, periodicna, oscilujuca funk
-        // sinx: R -> [-1,1] + 1 --> [0,2] /2 --> [0,1]
-        // f: (sinx + 1)/2 ili pak abs(sinx)
-        float timeValue = glfwGetTime();
-        float bluevalue = (sin(timeValue*4.0f) + 1)/2.0f;
-            //nalazimo tu uniformnu promenljivu
-        ourshader.setUniform4Float("unColor",0.5f,0.2f,bluevalue,1.0f);
+        float TimeValue = glfwGetTime();
+        float p = abs(sin(TimeValue));
+        ourshader.setUniform1Float("p",p);
+
+//        //postavljamo vrednost;
+//        //treba nam neka glatka, periodicna, oscilujuca funk
+//        // sinx: R -> [-1,1] + 1 --> [0,2] /2 --> [0,1]
+//        // f: (sinx + 1)/2 ili pak abs(sinx)
+//        float timeValue = glfwGetTime();
+//        float bluevalue = (sin(timeValue*4.0f) + 1)/2.0f;
+//            //nalazimo tu uniformnu promenljivu
+//        ourshader.setUniform4Float("unColor",0.5f,0.2f,bluevalue,1.0f);
 
         //ovde kazemo opengl da treba da nacrta sve sto smo poslali na gpu
-        //on cekreirati default-ni shader
+        //on ce kreirati default-ni shader
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6 ,GL_UNSIGNED_INT, 0);
 
