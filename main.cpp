@@ -18,7 +18,7 @@ void frameBufferSizeCallback(GLFWwindow *window, int width, int height);
 void mouseCallback(GLFWwindow *window, double xpos, double ypos);
 void scrollCallback(GLFWwindow *window,double xpos, double ypos);
 void processInput(GLFWwindow *window); // za kontinualno rukovanje
-
+unsigned int loadTexture(const char *path);
 
 //podesevanja
 const unsigned int SCR_WIDTH = 800;
@@ -107,56 +107,12 @@ int main(){
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 
 
-    //ovde pravimo prvu teksturu
-    unsigned tex0id;
-    glGenTextures(1,&tex0id);
-    glBindTexture(GL_TEXTURE_2D, tex0id);
-
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-    //ucitavamo teksturu
-    int width, height, nrChannel;
-    unsigned char* data = stbi_load("../resources/textures/container.jpg", &width, &height, &nrChannel, 0);
-
-    if(data){
-        //kacimo na trenutno aktivnu teksturu(objekat) ovaj data
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else{
-        std::cout << "Failed to laod texture!" << std::endl;
-    }
-    stbi_image_free(data);
-
-    //ovde pravimo drugu teksturu
-    unsigned tex1id;
-    glGenTextures(1,&tex1id);
-    glBindTexture(GL_TEXTURE_2D,tex1id);
-
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
     stbi_set_flip_vertically_on_load(true);
-    //ucitavamo teksturu
-    data = stbi_load("../resources/textures/awesomeface.png", &width, &height, &nrChannel, 0);
+    //ucitavamo prvu teksturu
+    unsigned tex0id = loadTexture("../resources/textures/container.jpg");
+    unsigned tex1id = loadTexture("../resources/textures/awesomeface.png");
 
-    if(data){
-        //kacimo na trenutno aktivnu teksturu(objekat) ovaj data
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else{
-        std::cout << "Failed to laod texture!" << std::endl;
-    }
-    stbi_image_free(data);
+
 
     ourshader.use();
     ourshader.setUniform1int("tex0",0);
@@ -248,6 +204,45 @@ void processInput(GLFWwindow *window){
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+}
+
+unsigned int loadTexture(const char *path) {
+
+    //ovde pravimo prvu teksturu
+    unsigned tex0id;
+    glGenTextures(1,&tex0id);
+    glBindTexture(GL_TEXTURE_2D, tex0id);
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+
+    //ucitavamo teksturu
+    int width, height, nrChannel;
+    unsigned char* data = stbi_load(path, &width, &height, &nrChannel, 0);
+
+    if(data){
+        GLenum format;
+        if(nrChannel == 1)
+            format = GL_RED;
+        else if(nrChannel == 3)
+            format = GL_RGB;
+        else if(nrChannel == 4)
+            format = GL_RGBA;
+        //kacimo na trenutno aktivnu teksturu(objekat) ovaj data
+        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else{
+        std::cerr << "Failed to laod texture:" << path << std::endl;
+    }
+
+    stbi_image_free(data);
+
+    return tex0id;
 }
 
 
