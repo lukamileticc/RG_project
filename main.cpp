@@ -12,6 +12,7 @@
 #include "include/classes_impl/Model.h"
 
 #include <iostream>
+#include <vector>
 #include <cmath>
 
 
@@ -20,8 +21,10 @@ void mouseCallback(GLFWwindow *window, double xpos, double ypos);
 void scrollCallback(GLFWwindow *window,double xpos, double ypos);
 void processInput(GLFWwindow *window); // za kontinualno rukovanje tastaturom
 unsigned int loadTexture(const char *path);
+unsigned int loadCubemap(std::vector<std::string> faces);
 
 unsigned int ucitaj_prostoriju();
+unsigned int ucitaj_skybox();
 
 //podesevanja
 const unsigned int SCR_WIDTH = 1920;
@@ -61,25 +64,39 @@ int main(){
         std::cerr << "Failed to initialize GLAD!" << std::endl;
         return -1;
     }
-
     //kazemo opengl da koristi z_buffer
     glEnable(GL_DEPTH_TEST);
-
     //kazemo stbi_image da flipuje teksturu po y-osi
-    stbi_set_flip_vertically_on_load(true);
+//    stbi_set_flip_vertically_on_load(true);
 
 
-    Shader ranacShader("../resources/shaders/model_ranac.vs",
-                     "../resources/shaders/model_ranac.fs");
-    //ucitavamo model
+    //ucitavamo sejdere
+    Shader prostorijaShader("../resources/shaders/prostorija.vs","../resources/shaders/prostorija.fs");
+    Shader ranacShader("../resources/shaders/model_ranac.vs","../resources/shaders/model_ranac.fs");
+    Shader skyboxShader("../resources/shaders/skybox.vs","../resources/shaders/skybox.fs");
+    //ucitavamo modele
     Model ranacModel("../resources/objects/backpack/backpack.obj");
 
 
     //ovde ucitavamo prostoriju
-    unsigned  int VAO_prostorija = ucitaj_prostoriju();
-    Shader prostorijaShader("../resources/shaders/prostorija.vs",
-                  "../resources/shaders/prostorija.fs");
+    unsigned int VAO_prostorija = ucitaj_prostoriju();
     unsigned texFloor = loadTexture("../resources/textures/floor.jpg");
+    prostorijaShader.use();
+    prostorijaShader.setUniform1int("texture0",0);
+
+    //ovde ucitavamo skybox i teksture
+    unsigned int VAO_skybox = ucitaj_skybox();
+    std::vector<std::string> space_skybox = {
+            "../resources/textures/skybox/bay_ft.jpg", //front
+            "../resources/textures/skybox/bay_bk.jpg", //back
+            "../resources/textures/skybox/bay_up.jpg", //up
+            "../resources/textures/skybox/bay_dn.jpg", //down
+            "../resources/textures/skybox/bay_rt.jpg", //right
+            "../resources/textures/skybox/bay_lf.jpg", //left
+    };
+    unsigned int cubemapTextures = loadCubemap(space_skybox);
+    skyboxShader.use();
+    skyboxShader.setUniform1int("skybox",0);
 
 
 //    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -93,7 +110,6 @@ int main(){
 
 
         prostorijaShader.use();
-        prostorijaShader.setUniform1int("texture0",0);
         //view/projection transformacije
         glm::mat4 projection = glm::perspective(glm::radians(camera.Fov),(float)SCR_WIDTH / (float)SCR_HEIGHT,0.1f,100.0f);
         glm::mat4 view = camera.getViewMatrix();
@@ -116,12 +132,26 @@ int main(){
         camera.getViewMatrix();
         ranacShader.setUniformMat4("projection",projection);
         ranacShader.setUniformMat4("view",view);
-
         model = glm::mat4(1.0f);
         ranacShader.setUniformMat4("model",model);
-
         //ovde kazemo da zelimo da se nacrta nas model pomocu nekog shadera
         ranacModel.Draw(ranacShader);
+
+
+        //skybox podesavanja
+        glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+        skyboxShader.use();
+        view = glm::mat4(glm::mat3(camera.getViewMatrix())); // remove translation from the view matrix
+        skyboxShader.setUniformMat4("view", view);
+        skyboxShader.setUniformMat4("projection", projection);
+        // skybox cube
+        glBindVertexArray(VAO_skybox);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTextures);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glBindVertexArray(0);
+        glDepthFunc(GL_LESS); // set depth function back to default
+
 
         glfwSwapBuffers(window);
     }
@@ -292,6 +322,94 @@ unsigned int ucitaj_prostoriju() {
 
     return VAO;
 }
+unsigned int loadCubemap(std::vector<std::string> faces)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
 
+    int width, height, nrChannels;
+    for (unsigned int i = 0; i < faces.size(); i++)
+    {
+        unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+        if (data)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+            stbi_image_free(data);
+        }
+        else
+        {
+            std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+            stbi_image_free(data);
+        }
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return textureID;
+}
+
+unsigned int ucitaj_skybox() {
+
+    float skyboxVertices[] = {
+            // positions
+            -1.0f,  1.0f, -1.0f,
+            -1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f, -1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+
+            -1.0f, -1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f, -1.0f,  1.0f,
+            -1.0f, -1.0f,  1.0f,
+
+            -1.0f,  1.0f, -1.0f,
+            1.0f,  1.0f, -1.0f,
+            1.0f,  1.0f,  1.0f,
+            1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f,  1.0f,
+            -1.0f,  1.0f, -1.0f,
+
+            -1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+            1.0f, -1.0f, -1.0f,
+            1.0f, -1.0f, -1.0f,
+            -1.0f, -1.0f,  1.0f,
+            1.0f, -1.0f,  1.0f
+    };
+
+    // skybox VAO
+    unsigned int skyboxVAO, skyboxVBO;
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    return skyboxVAO;
+}
 
 
