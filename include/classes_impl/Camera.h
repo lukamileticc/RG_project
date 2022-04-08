@@ -12,12 +12,13 @@ enum Camera_Movement{
     RIGHT
 };
 
+glm::vec3 front_kretanje;
 
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
 const float FOV = 45.0f;
 const float SENSITIVITY = 0.1;
-const float KEYSPEED = 0.090;
+const float KEYSPEED = 0.2;
 
 
 class Camera {
@@ -94,9 +95,9 @@ public:
     {
         float velocity = KeySpeed * deltaTime;
         if (direction == FORWARD)
-            Position += Front * velocity;
+            Position += front_kretanje * velocity;
         if (direction == BACKWARD)
-            Position -= Front * velocity;
+            Position -= front_kretanje * velocity;
         if (direction == LEFT)
             Position -= Right * velocity;
         if (direction == RIGHT)
@@ -115,6 +116,13 @@ private:
         front.y = sin(glm::radians(Pitch));
         front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
         Front = glm::normalize(front);
+
+
+        //omogucavamo samo kretanje u okviu prostorije
+        front_kretanje.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+        front_kretanje.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+        front_kretanje = glm::normalize(front_kretanje);
+
 
         //ponovno izracunavanje desnog i gornjeg vektora
         Right = glm::normalize(glm::cross(Front,WorldUp));
