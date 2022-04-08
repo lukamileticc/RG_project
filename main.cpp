@@ -21,6 +21,7 @@
 
 
 void frameBufferSizeCallback(GLFWwindow *window, int width, int height);
+void keyCallBack(GLFWwindow *window, int key, int scancode, int action, int mods);
 void mouseCallback(GLFWwindow *window, double xpos, double ypos);
 void scrollCallback(GLFWwindow *window,double xpos, double ypos);
 void processInput(GLFWwindow *window); // za kontinualno rukovanje tastaturom
@@ -39,6 +40,9 @@ Camera camera(glm::vec3(-21.0f,-2.0f,9.0f));
 float lastX = SCR_WIDTH / 2;
 float lastY = SCR_HEIGHT / 2;
 float deltaTime = 1.0f; // tastatura on/off
+
+//imgui setup
+bool m_EnableImgui = false;
 
 int main(){
 
@@ -61,6 +65,7 @@ int main(){
     glfwSetFramebufferSizeCallback(window, frameBufferSizeCallback);
     glfwSetCursorPosCallback(window,mouseCallback);
     glfwSetScrollCallback(window, scrollCallback);
+    glfwSetKeyCallback(window, keyCallBack);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 
@@ -189,7 +194,8 @@ int main(){
         glDepthFunc(GL_LESS); // set depth function back to default
 
 // ISCRTAVAMO IMGUI
-        DrawImGui();
+        if(m_EnableImgui)
+            DrawImGui();
 
         glfwSwapBuffers(window);
     }
@@ -224,7 +230,8 @@ void mouseCallback(GLFWwindow *window, double xpos, double ypos) {
     lastX = xpos;
     lastY = ypos;
 
-    camera.mouseCallBack(xoffset, yoffset);
+    if(!m_EnableImgui)
+        camera.mouseCallBack(xoffset, yoffset);
 }
 
 void scrollCallback(GLFWwindow *window, double xpos, double ypos) {
@@ -468,13 +475,32 @@ void DrawImGui() {
     ImGui::NewFrame();
 
     {
-        ImGui::Begin("Hello window");
+        ImGui::Begin("ImGui Settings");
+
+        //tekst
+        //color
+        //slider
+        //button
 
         ImGui::End();
     }
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void keyCallBack(GLFWwindow *window, int key, int scancode, int action, int mods) {
+    if(key == GLFW_KEY_F1 & action == GLFW_PRESS) {
+        m_EnableImgui = !m_EnableImgui;
+
+        if(m_EnableImgui){
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        }
+        else{
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+
+    }
 }
 
 
