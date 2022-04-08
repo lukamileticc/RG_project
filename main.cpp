@@ -1,3 +1,7 @@
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
@@ -9,7 +13,7 @@
 #include "include/classes_impl/Shader.h"
 #include "include/classes_impl/Camera.h"
 #include "include/stb_image.h"
-#include "include/classes_impl/Model.h"
+#include "include/classes_impl/model.h"
 
 #include <iostream>
 #include <vector>
@@ -22,6 +26,7 @@ void scrollCallback(GLFWwindow *window,double xpos, double ypos);
 void processInput(GLFWwindow *window); // za kontinualno rukovanje tastaturom
 unsigned int loadTexture(const char *path);
 unsigned int loadCubemap(std::vector<std::string> faces);
+void DrawImGui();
 
 unsigned int ucitaj_prostoriju();
 unsigned int ucitaj_skybox();
@@ -30,7 +35,7 @@ unsigned int ucitaj_skybox();
 const unsigned int SCR_WIDTH = 1920;
 const unsigned int SCR_HEIGHT = 1000;
 
-Camera camera(glm::vec3(0.0f,-2.0f,3.0f));
+Camera camera(glm::vec3(-21.0f,-2.0f,9.0f));
 float lastX = SCR_WIDTH / 2;
 float lastY = SCR_HEIGHT / 2;
 float deltaTime = 1.0f; // tastatura on/off
@@ -66,17 +71,30 @@ int main(){
     }
     //kazemo opengl da koristi z_buffer
     glEnable(GL_DEPTH_TEST);
-    //kazemo stbi_image da flipuje teksturu po y-osi
-//    stbi_set_flip_vertically_on_load(true);
+
+    //Inicijalizujemo imGui
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    (void) io;
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330 core");
 
 
     //ucitavamo sejdere
     Shader prostorijaShader("../resources/shaders/prostorija.vs","../resources/shaders/prostorija.fs");
     Shader ranacShader("../resources/shaders/model_ranac.vs","../resources/shaders/model_ranac.fs");
     Shader skyboxShader("../resources/shaders/skybox.vs","../resources/shaders/skybox.fs");
-    //ucitavamo modele
-    Model ranacModel("../resources/objects/backpack/backpack.obj");
 
+
+    //ucitavamo modele
+    //kazemo stbi_image da flipuje teksturu po y-osi
+    stbi_set_flip_vertically_on_load(true);
+    Model ranacModel("../resources/objects/backpack/backpack.obj");
+    stbi_set_flip_vertically_on_load(false);
+
+    Model gunModel("../resources/objects/gun/Handgun_obj.obj");
+    Shader gunShader("../resources/shaders/gun.vs","../resources/shaders/gun.fs");
 
     //ovde ucitavamo prostoriju
     unsigned int VAO_prostorija = ucitaj_prostoriju();
@@ -99,6 +117,7 @@ int main(){
     skyboxShader.setUniform1int("skybox",0);
 
 
+
 //    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(0.0f,0.0f,0.0f,0.0f);
     //petlja renderovanja
@@ -108,7 +127,7 @@ int main(){
         processInput(window);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+//ISCRTAVAMO PROSTORIJU
         prostorijaShader.use();
         //view/projection transformacije
         glm::mat4 projection = glm::perspective(glm::radians(camera.Fov),(float)SCR_WIDTH / (float)SCR_HEIGHT,0.1f,100.0f);
@@ -129,7 +148,7 @@ int main(){
         ranacShader.use();
         //view/projection transformacije
         projection = glm::perspective(glm::radians(camera.Fov),(float)SCR_WIDTH / (float)SCR_HEIGHT,0.1f,100.0f);
-        camera.getViewMatrix();
+        view = camera.getViewMatrix();
         ranacShader.setUniformMat4("projection",projection);
         ranacShader.setUniformMat4("view",view);
         model = glm::mat4(1.0f);
@@ -138,7 +157,24 @@ int main(){
         ranacModel.Draw(ranacShader);
 
 
-        //skybox podesavanja
+//ISCRAVAMO MODELE COVECULJAKA
+    //TODO
+
+//ICRTAVAMO PISTOLJ
+//        gunShader.use();
+//        projection = glm::perspective(glm::radians(camera.Fov),(float)SCR_WIDTH / (float)SCR_HEIGHT,0.1f,100.0f);
+//        view  = camera.getViewMatrix();
+//        gunShader.setUniformMat4("projection",projection);
+//        gunShader.setUniformMat4("view",view);
+//        model = glm::mat4(1.0f);
+////        float angle = 45.0f;
+////        model = glm::rotate(model,glm::radians(angle),glm::vec3(0.0f,1.0f,0.0f));
+////        model = glm::translate(model,camera.Position + camera.Front);
+//        gunShader.setUniformMat4("model",model);
+//        gunModel.Draw(gunShader);
+
+
+//SKYBOX PODESAVANJA
         glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
         skyboxShader.use();
         view = glm::mat4(glm::mat3(camera.getViewMatrix())); // remove translation from the view matrix
@@ -152,12 +188,25 @@ int main(){
         glBindVertexArray(0);
         glDepthFunc(GL_LESS); // set depth function back to default
 
+// ISCRTAVAMO IMGUI
+        DrawImGui();
 
         glfwSwapBuffers(window);
     }
 
+
+
     //deinit
+    prostorijaShader.deleteProgram();
+    gunShader.deleteProgram();
+    skyboxShader.deleteProgram();
     ranacShader.deleteProgram();
+
+    //deinit imgui
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
     glfwTerminate();
 
     return 0;
@@ -410,6 +459,22 @@ unsigned int ucitaj_skybox() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
     return skyboxVAO;
+}
+
+void DrawImGui() {
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    {
+        ImGui::Begin("Hello window");
+
+        ImGui::End();
+    }
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 
