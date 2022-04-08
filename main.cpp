@@ -30,7 +30,6 @@ float lastX = SCR_WIDTH / 2;
 float lastY = SCR_HEIGHT / 2;
 float deltaTime = 1.0f; // tastatura on/off
 
-
 int main(){
 
     //inicijalizujemo glfw

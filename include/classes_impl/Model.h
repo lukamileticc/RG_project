@@ -20,8 +20,9 @@ public:
         loadModel(path);
     }
     void Draw(Shader& shader){
-        for(auto &m : m_mashes)
+        for(auto &m : m_mashes) {
             m.Draw(shader);
+        }
     }
 
 private:
@@ -31,7 +32,7 @@ private:
     void loadModel(const std::string &path){
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals
-                                |aiProcess_FlipUVs|aiProcess_CalcTangentSpace);
+                                | aiProcess_FlipUVs |aiProcess_CalcTangentSpace);
 
         if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
             std::cerr << "ERROR:: ASSIMP:: " << importer.GetErrorString() << std::endl;
@@ -108,6 +109,7 @@ private:
         result.textures.insert(result.textures.end(),normalMaps.begin(),normalMaps.end());
         result.textures.insert(result.textures.end(),heightMaps.begin(),heightMaps.end());
 
+
         result.setupMesh();
 
         return result;
@@ -129,7 +131,7 @@ private:
                 texture.path = str.C_Str();
                 result.push_back(texture);
                 m_loaded_textures.insert(texture.path);
-                std::cout << texture.path <<':' << texture.type << std::endl;
+//                std::cout << texture.path <<':' << texture.type << std::endl;
             }
         }
         return result;
