@@ -31,6 +31,7 @@ void DrawImGui();
 
 unsigned int ucitaj_prostoriju();
 unsigned int ucitaj_skybox();
+unsigned int ucitaj_kocke();
 
 //podesevanja
 const unsigned int SCR_WIDTH = 1920;
@@ -90,6 +91,7 @@ int main(){
     Shader prostorijaShader("../resources/shaders/prostorija.vs","../resources/shaders/prostorija.fs");
     Shader ranacShader("../resources/shaders/model_ranac.vs","../resources/shaders/model_ranac.fs");
     Shader skyboxShader("../resources/shaders/skybox.vs","../resources/shaders/skybox.fs");
+    Shader kockaShader("../resources/shaders/kocka.vs","../resources/shaders/kocka.fs");
 
 
     //ucitavamo modele
@@ -106,6 +108,29 @@ int main(){
     unsigned texFloor = loadTexture("../resources/textures/floor.jpg");
     prostorijaShader.use();
     prostorijaShader.setUniform1int("texture0",0);
+
+    //ovde ucitavamo kocku
+    unsigned int VAO_kocke = ucitaj_kocke();
+    unsigned texKocke = loadTexture("../resources/textures/brick.jpg");
+    unsigned texKockeFrame = loadTexture("../resources/textures/metal_frame.jpg");
+    kockaShader.use();
+    kockaShader.setUniform1int("tex0",0);
+    kockaShader.setUniform1int("tex1",1);
+    //zelimo da imamo vise kocki na razlicitm pozicijama
+    glm::vec3 cubePositions[] = {
+            glm::vec3(17.0f, -4.5f, -30.0f),
+            glm::vec3( -17.0f,  -4.5f, -30.0f),
+            glm::vec3(-1.5f, -4.5f, -35.5f),
+            glm::vec3(-7.8f, -4.5f, -22.3f),
+            glm::vec3( 13.4f, -4.5f, -15.5f),
+            glm::vec3(-8.7f,  -4.5f, -7.5f),
+            glm::vec3( 11.3f, -4.5f, -6.5f),
+            glm::vec3( 19.5f,  -4.5f, -11.5f),
+            glm::vec3( -8.5f,  -4.5f, -1.5f),
+            glm::vec3(-16.3f,  -4.5f, -1.5f)
+    };
+
+
 
     //ovde ucitavamo skybox i teksture
     unsigned int VAO_skybox = ucitaj_skybox();
@@ -148,6 +173,37 @@ int main(){
         glBindTexture(GL_TEXTURE_2D, texFloor);
         glBindVertexArray(VAO_prostorija);
         glDrawArrays(GL_TRIANGLES,0,36);
+
+
+//ISCRTAVAMO KOCKE
+        kockaShader.use();
+        projection = glm::perspective(glm::radians(camera.Fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        kockaShader.setUniformMat4("projection", projection);
+        //ovde cemo postaviti pomerajucu kameru
+        //drugi argument gde kamera gleda
+        view = camera.getViewMatrix();
+        kockaShader.setUniformMat4("view",view);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texKocke);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D,texKockeFrame);
+
+        //ovde kazemo opengl da treba da nacrta sve to sto smo gore poslali na gpu
+        //ovde opet aktiviramo interpretaciju podataka
+        glBindVertexArray(VAO_kocke);
+        for(int i = 0; i < 10; i++){
+            auto model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+//            float angle = glfwGetTime() * (i + 1);
+//            model = glm::rotate(model, glm::radians(angle), glm::vec3(0.5f,0.7f,0.0f));
+            model = glm::scale(model,glm::vec3(3.0f,3.0f,3.0f));
+            kockaShader.setUniformMat4("model",model);
+            glDrawElements(GL_TRIANGLES,36,GL_UNSIGNED_INT,0);
+            std::cout << "Nacrtao sam " << i << std::endl;
+        }
+
+
 
 
         ranacShader.use();
@@ -501,6 +557,101 @@ void keyCallBack(GLFWwindow *window, int key, int scancode, int action, int mods
         }
 
     }
+}
+
+unsigned int ucitaj_kocke() {
+
+    float vertices[] = {
+
+            //jedna strana kocke
+            //   x   y      z     offset
+            -0.5f , -0.5f, 0.0f, 0.0f, 0.0f, //bottom left
+            0.5f, -0.5f, 0.0f, 1.0f, 0.0f,//bottom right
+            -0.5f,0.5f,0.0f, 0.0f, 1.0f,//top left
+            0.5f, 0.5f, 0.0f, 1.0f, 1.0f, //top right
+
+            //druga strana kocke
+            0.5f, -0.5f, 0.0f, 0.0f, 0.0f,//bottom right
+            0.5f, 0.5f, 0.0f, 1.0f, 0.0f, //top right
+            0.5f, -0.5f, -1.0f, 0.0f, 1.0f,//bottom right
+            0.5f, 0.5f, -1.0f, 1.0f, 1.0f, //top right
+
+            //treca strana kocke
+            -0.5f , -0.5f, 0.0f, 0.0f, 1.0f, //bottom left
+            -0.5f,0.5f,0.0f, 1.0f, 1.0f,//top left
+            -0.5f , -0.5f, -1.0f, 0.0f, 0.0f, //bottom left
+            -0.5f,0.5f,-1.0f, 1.0f, 0.0f,//top left
+
+            //cevrta strana kocke
+            //   x   y      z     offset
+            -0.5f , -0.5f, -1.0f, 0.0f, 1.0f, //bottom left
+            0.5f, -0.5f, -1.0f, 1.0f, 1.0f,//bottom right
+            -0.5f,0.5f,-1.0f, 0.0f, 0.0f,//top left
+            0.5f, 0.5f, -1.0f, 1.0f, 0.0f, //top right
+
+            //peta strana kocke
+            -0.5f,0.5f,0.0f, 0.0f, 0.0f,//top left
+            0.5f, 0.5f, 0.0f, 0.0f, 1.0f, //top right
+            -0.5f,0.5f,-1.0f, 1.0f, 0.0f,//top left
+            0.5f, 0.5f, -1.0f, 1.0f, 1.0f, //top right
+
+            //sestra strana kocke
+            -0.5f,-0.5f,0.0f, 0.0f, 1.0f,//bottom left
+            0.5f, -0.5f, 0.0f, 0.0f, 0.0f, //bottom right
+            -0.5f,-0.5f,-1.0f, 1.0f, 1.0f,//bottom left
+            0.5f, -0.5f, -1.0f, 1.0f, 0.0f, //bottom right
+
+
+
+    };
+    unsigned  indices[] {
+            //frist
+            0,1,2,
+            // second
+            1,2,3,
+            //druga strana kocke
+            4,5,6,
+            5,6,7,
+            //treca strana
+            8,9,10,
+            9,10,11,
+            //cevrta strana
+            12,13,14,
+            13,14,15,
+            //peta strana
+            16,17,18,
+            17,18,19,
+            //sesta strana
+            20,21,22,
+            21,22,23
+    };
+
+    unsigned VBO,VAO,EBO;
+    glGenVertexArrays(1,&VAO);
+    glBindVertexArray(VAO);
+
+
+    glGenBuffers(1,&VBO);
+    glGenBuffers(1,&EBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    //ovde kazemo grafickoj sta ti podaci zapravo predstavljaju
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float),(void*)0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float),(void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+    //Deaktiviramo ovaj objekat
+//    glBindBuffer(GL_ARRAY_BUFFER,0);
+    glBindVertexArray(0);
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+
+    return VAO;
 }
 
 
