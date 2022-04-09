@@ -78,6 +78,11 @@ int main(){
     //kazemo opengl da koristi z_buffer
     glEnable(GL_DEPTH_TEST);
 
+    //face culling
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glDisable(GL_CULL_FACE);
+
     //Inicijalizujemo imGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -97,7 +102,7 @@ int main(){
     //ucitavamo modele
     //kazemo stbi_image da flipuje teksturu po y-osi
     stbi_set_flip_vertically_on_load(true);
-    Model ranacModel("../resources/objects/backpack/backpack.obj");
+    Model ranacModel("../resources/objects/ak47/AK47.obj");
     stbi_set_flip_vertically_on_load(false);
 
     Model gunModel("../resources/objects/gun/Handgun_obj.obj");
@@ -200,7 +205,7 @@ int main(){
             model = glm::scale(model,glm::vec3(3.0f,3.0f,3.0f));
             kockaShader.setUniformMat4("model",model);
             glDrawElements(GL_TRIANGLES,36,GL_UNSIGNED_INT,0);
-            std::cout << "Nacrtao sam " << i << std::endl;
+//            std::cout << "Nacrtao sam " << i << std::endl;
         }
 
 
@@ -213,6 +218,9 @@ int main(){
         ranacShader.setUniformMat4("projection",projection);
         ranacShader.setUniformMat4("view",view);
         model = glm::mat4(1.0f);
+        model = glm::translate(model,camera.Position + glm::vec3(0.5f,-0.5f,-0.5f));
+        model = glm::rotate(model, glm::radians(100.0f),glm::vec3(0.0f,1.0f,0.0f));
+        model = glm::scale(model,glm::vec3(0.03f));
         ranacShader.setUniformMat4("model",model);
         //ovde kazemo da zelimo da se nacrta nas model pomocu nekog shadera
         ranacModel.Draw(ranacShader);
@@ -222,17 +230,17 @@ int main(){
     //TODO
 
 //ICRTAVAMO PISTOLJ
-//        gunShader.use();
-//        projection = glm::perspective(glm::radians(camera.Fov),(float)SCR_WIDTH / (float)SCR_HEIGHT,0.1f,100.0f);
-//        view  = camera.getViewMatrix();
-//        gunShader.setUniformMat4("projection",projection);
-//        gunShader.setUniformMat4("view",view);
-//        model = glm::mat4(1.0f);
-////        float angle = 45.0f;
-////        model = glm::rotate(model,glm::radians(angle),glm::vec3(0.0f,1.0f,0.0f));
-////        model = glm::translate(model,camera.Position + camera.Front);
-//        gunShader.setUniformMat4("model",model);
-//        gunModel.Draw(gunShader);
+        gunShader.use();
+        projection = glm::perspective(glm::radians(camera.Fov),(float)SCR_WIDTH / (float)SCR_HEIGHT,0.1f,100.0f);
+        view  = camera.getViewMatrix();
+        gunShader.setUniformMat4("projection",projection);
+        gunShader.setUniformMat4("view",view);
+        model = glm::mat4(1.0f);
+//        float angle = 45.0f;
+//        model = glm::rotate(model,glm::radians(angle),glm::vec3(0.0f,1.0f,0.0f));
+        model = glm::translate(model,glm::vec3(4.0f,2.0f,1.0f));
+        gunShader.setUniformMat4("model",model);
+        gunModel.Draw(gunShader);
 
 
 //SKYBOX PODESAVANJA
