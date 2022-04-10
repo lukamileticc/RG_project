@@ -9,6 +9,10 @@
 3. U glavnom repozitorijumu se nalazi main.cpp
 4. ALT+SHIFT+F10 -- precica za pokretanje projekta
 
+## Screenshots :dart:
+
+![Example screenshot](./screenshots/slika1.png)
+
 
 ## Controls :selfie:  
 - ```w``` kretanje unapred
