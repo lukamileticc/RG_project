@@ -124,6 +124,7 @@ int main(){
     Shader lightingShader("../resources/shaders/swat.vs","../resources/shaders/swat.fs");
     Shader bulletShader("../resources/shaders/swat.vs","../resources/shaders/swat.fs");
     Shader lightCubeShader("../resources/shaders/light_cube.vs", "../resources/shaders/light_cube.fs");
+    Shader cubeBlendShader("../resources/shaders/cube_blend.vs", "../resources/shaders/cube_blend.fs");
 
 
     //ucitavamo modele
@@ -210,6 +211,11 @@ int main(){
     skyboxShader.setUniform1int("skybox",0);
 
 
+    //ucitava cube_blending
+    unsigned int VAO_cube_blend = ucitaj_light_cube();
+    unsigned ghost_texture = loadTexture("../resources/textures/ghost.png");
+    cubeBlendShader.use();
+    cubeBlendShader.setUniform1Float("texture1",0);
 
 //    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glClearColor(0.0f,0.0f,0.0f,0.0f);
@@ -413,6 +419,19 @@ int main(){
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
+//ISCRTAVAMO CUBE_BLEND
+        cubeBlendShader.use();
+        cubeBlendShader.setUniformMat4("projection",projection);
+        view = camera.getViewMatrix();
+        cubeBlendShader.setUniformMat4("view", view);
+        model = glm::mat4(1.0f);
+        model = glm::translate(model,glm::vec3(-3.0f,0.0f,0.0f));
+        cubeBlendShader.setUniformMat4("model",model);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, ghost_texture);
+        glBindVertexArray(VAO_cube_blend);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
 // ISCRTAVAMO IMGUI
         if(m_EnableImgui)
             DrawImGui();
@@ -430,6 +449,7 @@ int main(){
     lightingShader.deleteProgram();
     bulletShader.deleteProgram();
     lightCubeShader.deleteProgram();
+    cubeBlendShader.deleteProgram();
 
     //deinit imgui
     ImGui_ImplOpenGL3_Shutdown();
@@ -915,6 +935,10 @@ unsigned int ucitaj_light_cube(){
     glBindVertexArray(lightCubeVAO);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,8 * sizeof(float),(void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2,2,GL_FLOAT,GL_FALSE,8 * sizeof(float),(void*)(6*sizeof(float)));
+    glEnableVertexAttribArray(2);
 
 
     return lightCubeVAO;
