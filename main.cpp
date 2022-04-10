@@ -67,6 +67,7 @@ struct PointLight{
 glm::vec3 lightPos(-1.2f, 0.0f, -6.0f);
 
 bool spot_light_indicator = false;
+bool advance_lighting_indicator = false;
 
 int main(){
 
@@ -116,11 +117,11 @@ int main(){
 
 
     //ucitavamo sejdere
-    Shader prostorijaShader("../resources/shaders/prostorija.vs","../resources/shaders/prostorija.fs");
+//    Shader prostorijaShader("../resources/shaders/prostorija.vs","../resources/shaders/prostorija.fs");
     Shader puskaShader("../resources/shaders/puska.vs","../resources/shaders/puska.fs");
     Shader skyboxShader("../resources/shaders/skybox.vs","../resources/shaders/skybox.fs");
 //    Shader kockaShader("../resources/shaders/kocka.vs","../resources/shaders/kocka.fs");
-    Shader swatShader("../resources/shaders/swat.vs","../resources/shaders/swat.fs");
+    Shader lightingShader("../resources/shaders/swat.vs","../resources/shaders/swat.fs");
     Shader bulletShader("../resources/shaders/swat.vs","../resources/shaders/swat.fs");
     Shader lightCubeShader("../resources/shaders/light_cube.vs", "../resources/shaders/light_cube.fs");
 
@@ -168,16 +169,16 @@ int main(){
     //ovde ucitavamo prostoriju
     unsigned int VAO_prostorija = ucitaj_prostoriju();
     unsigned texFloor = loadTexture("../resources/textures/floor.jpg");
-    prostorijaShader.use();
-    prostorijaShader.setUniform1int("texture0",0);
+    lightingShader.use();
+    lightingShader.setUniform1int("material.texture_diffuse1",0);
 
     //ovde ucitavamo kocku
     unsigned int VAO_kocke = ucitaj_kocke();
     unsigned texKocke = loadTexture("../resources/textures/brick.jpg");
     unsigned texKockeFrame = loadTexture("../resources/textures/metal_frame.jpg");
-    swatShader.use();
-    swatShader.setUniform1int("material.texture_diffuse1",0);
-//    swatShader.setUniform1int("material.texture_specular1",1);
+    lightingShader.use();
+    lightingShader.setUniform1int("material.texture_diffuse1",0);
+//    lightingShader.setUniform1int("material.texture_specular1",1);
     //zelimo da imamo vise kocki na razlicitm pozicijama
     glm::vec3 cubePositions[] = {
             glm::vec3(17.0f, -4.5f, -30.0f),
@@ -219,89 +220,95 @@ int main(){
         processInput(window);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        swatShader.use();
+        lightingShader.use();
         //podesavanje direkcionog
-        swatShader.setUniformVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
-        swatShader.setUniformVec3("dirLight.ambient", 0.005f, 0.005f, 0.005f);
-        swatShader.setUniformVec3("dirLight.diffuse", 0.8f, 0.8f, 0.8f);
-        swatShader.setUniformVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+        lightingShader.setUniformVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        lightingShader.setUniformVec3("dirLight.ambient", 0.005f, 0.005f, 0.005f);
+        lightingShader.setUniformVec3("dirLight.diffuse", 0.8f, 0.8f, 0.8f);
+        lightingShader.setUniformVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
         // point light 1
-        swatShader.setUniformVec3("pointLights[0].position", pointLightPositions[0]);
-        swatShader.setUniformVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-        swatShader.setUniformVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-        swatShader.setUniformVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-        swatShader.setUniform1Float("pointLights[0].constant", 1.0f);
-        swatShader.setUniform1Float("pointLights[0].linear", 0.09);
-        swatShader.setUniform1Float("pointLights[0].quadratic", 0.032);
+        lightingShader.setUniformVec3("pointLights[0].position", pointLightPositions[0]);
+        lightingShader.setUniformVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
+        lightingShader.setUniformVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+        lightingShader.setUniformVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+        lightingShader.setUniform1Float("pointLights[0].constant", 1.0f);
+        lightingShader.setUniform1Float("pointLights[0].linear", 0.09);
+        lightingShader.setUniform1Float("pointLights[0].quadratic", 0.032);
         // point light 2
-        swatShader.setUniformVec3("pointLights[1].position", pointLightPositions[1]);
-        swatShader.setUniformVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
-        swatShader.setUniformVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
-        swatShader.setUniformVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
-        swatShader.setUniform1Float("pointLights[1].constant", 1.0f);
-        swatShader.setUniform1Float("pointLights[1].linear", 0.09);
-        swatShader.setUniform1Float("pointLights[1].quadratic", 0.032);
+        lightingShader.setUniformVec3("pointLights[1].position", pointLightPositions[1]);
+        lightingShader.setUniformVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
+        lightingShader.setUniformVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
+        lightingShader.setUniformVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
+        lightingShader.setUniform1Float("pointLights[1].constant", 1.0f);
+        lightingShader.setUniform1Float("pointLights[1].linear", 0.09);
+        lightingShader.setUniform1Float("pointLights[1].quadratic", 0.032);
         // point light 3
-        swatShader.setUniformVec3("pointLights[2].position", pointLightPositions[2]);
-        swatShader.setUniformVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
-        swatShader.setUniformVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
-        swatShader.setUniformVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
-        swatShader.setUniform1Float("pointLights[2].constant", 1.0f);
-        swatShader.setUniform1Float("pointLights[2].linear", 0.09);
-        swatShader.setUniform1Float("pointLights[2].quadratic", 0.032);
+        lightingShader.setUniformVec3("pointLights[2].position", pointLightPositions[2]);
+        lightingShader.setUniformVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
+        lightingShader.setUniformVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+        lightingShader.setUniformVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+        lightingShader.setUniform1Float("pointLights[2].constant", 1.0f);
+        lightingShader.setUniform1Float("pointLights[2].linear", 0.09);
+        lightingShader.setUniform1Float("pointLights[2].quadratic", 0.032);
         // point light 4
-        swatShader.setUniformVec3("pointLights[3].position", pointLightPositions[3]);
-        swatShader.setUniformVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
-        swatShader.setUniformVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
-        swatShader.setUniformVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
-        swatShader.setUniform1Float("pointLights[3].constant", 1.0f);
-        swatShader.setUniform1Float("pointLights[3].linear", 0.09);
-        swatShader.setUniform1Float("pointLights[3].quadratic", 0.032);
+        lightingShader.setUniformVec3("pointLights[3].position", pointLightPositions[3]);
+        lightingShader.setUniformVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
+        lightingShader.setUniformVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
+        lightingShader.setUniformVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
+        lightingShader.setUniform1Float("pointLights[3].constant", 1.0f);
+        lightingShader.setUniform1Float("pointLights[3].linear", 0.09);
+        lightingShader.setUniform1Float("pointLights[3].quadratic", 0.032);
         // spotLight
-        swatShader.setUniformVec3("spotLight.position", camera.Position);
-        swatShader.setUniformVec3("spotLight.direction", camera.Front);
-        swatShader.setUniformVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-        swatShader.setUniformVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-        swatShader.setUniformVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-        swatShader.setUniform1Float("spotLight.constant", 1.0f);
-        swatShader.setUniform1Float("spotLight.linear", 0.09);
-        swatShader.setUniform1Float("spotLight.quadratic", 0.032);
-        swatShader.setUniform1Float("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-        swatShader.setUniform1Float("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+        lightingShader.setUniformVec3("spotLight.position", camera.Position);
+        lightingShader.setUniformVec3("spotLight.direction", camera.Front);
+        lightingShader.setUniformVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+        lightingShader.setUniformVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+        lightingShader.setUniformVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+        lightingShader.setUniform1Float("spotLight.constant", 1.0f);
+        lightingShader.setUniform1Float("spotLight.linear", 0.09);
+        lightingShader.setUniform1Float("spotLight.quadratic", 0.032);
+        lightingShader.setUniform1Float("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+        lightingShader.setUniform1Float("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
 
 
         if(spot_light_indicator)
-            swatShader.setUniform1Float("spot_indikator",1);
+            lightingShader.setUniform1Float("spot_indikator",1);
         else
-            swatShader.setUniform1Float("spot_indikator",0);
+            lightingShader.setUniform1Float("spot_indikator",0);
+
+        if(advance_lighting_indicator)
+            lightingShader.setUniform1Float("advance_lighting",true);
+        else
+            lightingShader.setUniform1Float("advance_lighting",false);
+
 
 
 //ISCRTAVAMO PROSTORIJU
-        prostorijaShader.use();
+        lightingShader.use();
         //view/projection transformacije
         glm::mat4 projection = glm::perspective(glm::radians(camera.Fov),(float)SCR_WIDTH / (float)SCR_HEIGHT,0.1f,100.0f);
         glm::mat4 view = camera.getViewMatrix();
-        prostorijaShader.setUniformMat4("projection",projection);
-        prostorijaShader.setUniformMat4("view",view);
+        lightingShader.setUniformMat4("projection",projection);
+        lightingShader.setUniformMat4("view",view);
         glm::mat4 model = glm::mat4(1.0f);
         float scale_value = 10.0f;
         model = glm::scale(model,glm::vec3(scale_value + 15.0f,scale_value,scale_value));
-        prostorijaShader.setUniformMat4("model",model);
+        lightingShader.setUniformMat4("model",model);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texFloor);
         glBindVertexArray(VAO_prostorija);
-        glDrawArrays(GL_TRIANGLES,0,36);
+        glDrawArrays(GL_TRIANGLES,0,30);
 
 
 //ISCRTAVAMO KOCKE
-        swatShader.use();
+        lightingShader.use();
         projection = glm::perspective(glm::radians(camera.Fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        swatShader.setUniformMat4("projection", projection);
+        lightingShader.setUniformMat4("projection", projection);
         //ovde cemo postaviti pomerajucu kameru
         //drugi argument gde kamera gleda
         view = camera.getViewMatrix();
-        swatShader.setUniformMat4("view",view);
+        lightingShader.setUniformMat4("view",view);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texKocke);
@@ -317,7 +324,7 @@ int main(){
 //            float angle = glfwGetTime() * (i + 1);
 //            model = glm::rotate(model, glm::radians(angle), glm::vec3(0.5f,0.7f,0.0f));
             model = glm::scale(model,glm::vec3(3.0f,3.0f,3.0f));
-            swatShader.setUniformMat4("model",model);
+            lightingShader.setUniformMat4("model",model);
             glDrawArrays(GL_TRIANGLES,0,36);
 //            glDrawElements(GL_TRIANGLES,36,GL_UNSIGNED_INT,0);
 //            std::cout << "Nacrtao sam " << i << std::endl;
@@ -341,9 +348,9 @@ int main(){
 
 
 //ISCRAVAMO MODELE COVECULJAKA
-        swatShader.use();
-        swatShader.setUniformMat4("projection",projection);
-        swatShader.setUniformMat4("view",view);
+        lightingShader.use();
+        lightingShader.setUniformMat4("projection",projection);
+        lightingShader.setUniformMat4("view",view);
 
         float current_time = glfwGetTime();
 
@@ -352,8 +359,8 @@ int main(){
             model = glm::translate(model, swatPositions[i] + glm::vec3(sin(current_time)*5,0.0f,0.0f));
             model = glm::rotate(model, glm::radians(current_time*100), glm::vec3(0.0f, 1.0f, 0.0f));
             model = glm::scale(model, glm::vec3(0.03f));
-            swatShader.setUniformMat4("model", model);
-            swatModel.Draw(swatShader);
+            lightingShader.setUniformMat4("model", model);
+            swatModel.Draw(lightingShader);
         }
 
 //ISCRTAVANJE METAKA
@@ -413,11 +420,11 @@ int main(){
 
 
     //deinit
-    prostorijaShader.deleteProgram();
+//    prostorijaShader.deleteProgram();
     skyboxShader.deleteProgram();
     puskaShader.deleteProgram();
 //    kockaShader.deleteProgram();
-    swatShader.deleteProgram();
+    lightingShader.deleteProgram();
     bulletShader.deleteProgram();
     lightCubeShader.deleteProgram();
 
@@ -468,6 +475,8 @@ void processInput(GLFWwindow *window){
 
     if(glfwGetKey(window,GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
         camera.KeySpeed = 0.8;
+    if(glfwGetKey(window,GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+        camera.KeySpeed = 0.2;
 
 }
 unsigned int loadTexture(const char *path) {
@@ -516,53 +525,53 @@ unsigned int ucitaj_prostoriju() {
     float vertices[] = {
             //prednji pravougaonik
             //first triangle
-            1.0, 0.5, 1.0,   0.0, 0.0,//top right
-            -1.0, 0.5 , 1.0,    0.0, 0.0,//top left
-            1.0, -0.5, 1.0 ,    0.0, 0.0,// bottom right
+            1.0, 0.5, 1.0,     0.0f,0.0f,-1.0f, 0.0, 0.0,
+            -1.0, 0.5 , 1.0,     0.0f,0.0f,-1.0f, 0.0, 0.0,
+            1.0, -0.5, 1.0 ,     0.0f,0.0f,-1.0f, 0.0, 0.0,
             //second triangle
-            1.0, -0.5, 1.0,     0.0, 0.0,//bottom right
-            -1.0, 0.5, 1.0,     0.0, 0.0,//top left
-            -1.0, -0.5, 1.0,     0.0, 0.0, // bottom left
+            1.0, -0.5, 1.0,      0.0f,0.0f,-1.0f, 0.0, 0.0,
+            -1.0, 0.5, 1.0,      0.0f,0.0f,-1.0f, 0.0, 0.0,
+            -1.0, -0.5, 1.0,      0.0f,0.0f,-1.0f, 0.0, 0.0,
 
             //desni pravougaonik
-            1.0, 0.5, 1.0,     0.0, 0.0,
-            1.0, -0.5, 1.0,     0.0, 0.0,
-            1.0, 0.5, -6.0,    0.0, 0.0,
-            1.0, 0.5, -6.0,    0.0, 0.0,
-            1.0, -0.5, 1.0,     0.0, 0.0,
-            1.0, -0.5, -6.0,    0.0, 0.0,
+            1.0, 0.5, 1.0,      -1.0f,0.0f, 0.0f, 0.0, 0.0,
+            1.0, -0.5, 1.0,      -1.0f,0.0f, 0.0f,0.0, 0.0,
+            1.0, 0.5, -6.0,     -1.0f,0.0f, 0.0f,0.0, 0.0,
+            1.0, 0.5, -6.0,    -1.0f,0.0f, 0.0f,0.0, 0.0,
+            1.0, -0.5, 1.0,      -1.0f,0.0f, 0.0f,0.0, 0.0,
+            1.0, -0.5, -6.0,     -1.0f,0.0f, 0.0f,0.0, 0.0,
 
             //levi pravouganik
-            -1.0, 0.5 , 1.0,   0.0, 0.0,
-            -1.0, -0.5, 1.0,    0.0, 0.0,
-            -1.0, 0.5, -6.0,    0.0, 0.0,
-            -1.0, -0.5, 1.0,    0.0, 0.0,
-            -1.0, 0.5, -6.0,   0.0, 0.0,
-            -1.0, -0.5, -6.0,    0.0, 0.0,
+            -1.0, 0.5 , 1.0,      1.0f,0.0f, 0.0f, 0.0, 0.0,
+            -1.0, -0.5, 1.0,    1.0f,0.0f, 0.0f, 0.0, 0.0,
+            -1.0, 0.5, -6.0,     1.0f,0.0f, 0.0f, 0.0, 0.0,
+            -1.0, -0.5, 1.0,     1.0f,0.0f, 0.0f, 0.0, 0.0,
+            -1.0, 0.5, -6.0,    1.0f,0.0f, 0.0f, 0.0, 0.0,
+            -1.0, -0.5, -6.0,     1.0f,0.0f, 0.0f, 0.0, 0.0,
 
             //zadnja stranica
-            1.0, 0.5, -6.0,       0.0, 0.0,
-            -1.0, 0.5 , -6.0,     0.0, 0.0,
-            1.0, -0.5, -6.0 ,     0.0, 0.0,
-            1.0, -0.5, -6.0,      0.0, 0.0,
-            -1.0, 0.5, -6.0,      0.0, 0.0,
-            -1.0, -0.5, -6.0,     0.0, 0.0,
+            1.0, 0.5, -6.0,        0.0f,0.0f, 1.0f, 0.0, 0.0,
+            -1.0, 0.5 , -6.0,      0.0f,0.0f, 1.0f,0.0, 0.0,
+            1.0, -0.5, -6.0 ,      0.0f,0.0f, 1.0f,0.0, 0.0,
+            1.0, -0.5, -6.0,       0.0f,0.0f, 1.0f,0.0, 0.0,
+            -1.0, 0.5, -6.0,       0.0f,0.0f, 1.0f,0.0, 0.0,
+            -1.0, -0.5, -6.0,      0.0f,0.0f, 1.0f,0.0, 0.0,
 
             //donja strana
-            1.0, -0.5, 1.0, 1.0 ,0.0,
-            -1.0, -0.5, 1.0,    0.0, 0.0,
-            -1.0, -0.5, -6.0,    0.0, 1.0,
-            1.0, -0.5, 1.0,     1.0 ,0.0,
-            1.0, -0.5, -6.0,    1.0, 1.0,
-            -1.0, -0.5, -6.0,   0.0, 1,0,
+            1.0, -0.5, 1.0,  0.0f,1.0f, 0.0f, 1.0 ,0.0,
+            -1.0, -0.5, 1.0,     0.0f,1.0f, 0.0f, 0.0, 0.0,
+            -1.0, -0.5, -6.0,    0.0f,1.0f, 0.0f, 0.0, 1.0,
+            1.0, -0.5, 1.0,      0.0f,1.0f, 0.0f,1.0 ,0.0,
+            1.0, -0.5, -6.0,     0.0f,1.0f, 0.0f,1.0, 1.0,
+            -1.0, -0.5, -6.0,   0, 0.0f,1.0f, 0.0f,0.0, 1,
 
-            //gornja strana
-            -1.0, 0.5 , 1.0,    0.0, 0.0,
-            1.0, 0.5, 1.0,       0.0, 0.0,
-            -1.0, 0.5, -6.0,     0.0, 0.0,
-            -1.0, 0.5, -6.0,    0.0, 0.0,
-            1.0, 0.5, 1.0,       0.0, 0.0,
-            1.0, 0.5, -6.0,     0.0, 0.0,
+//            //gornja strana
+//            -1.0, 0.5 , 1.0,     0.0f,0.0f, 0.0f, 0.0, 0.0,
+//            1.0, 0.5, 1.0,        0.0f,0.0f, 0.0f, 0.0, 0.0,
+//            -1.0, 0.5, -6.0,      0.0f,0.0f, 0.0f,0.0, 0.0,
+//            -1.0, 0.5, -6.0,     0.0f,0.0f, 0.0f,0.0, 0.0,
+//            1.0, 0.5, 1.0,        0.0f,0.0f, 0.0f,0.0, 0.0,
+//            1.0, 0.5, -6.0,      0.0f,0.0f, 0.0f,0.0, 0.0,
 
     };
 
@@ -585,10 +594,12 @@ unsigned int ucitaj_prostoriju() {
 
 
     //kazemo sta znace podaci iz vbo
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float),(void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float),(void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1,2,GL_FLOAT, GL_FALSE, 5* sizeof(float), (void*)(3*sizeof (float )));
+    glVertexAttribPointer(1,3,GL_FLOAT, GL_FALSE, 8* sizeof(float), (void*)(3*sizeof (float )));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2,2,GL_FLOAT, GL_FALSE, 8* sizeof(float), (void*)(6*sizeof (float )));
+    glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER,0);
     glBindVertexArray(0);
@@ -738,6 +749,12 @@ void keyCallBack(GLFWwindow *window, int key, int scancode, int action, int mods
         spot_light_indicator = true;
     if (key == GLFW_KEY_F && action == GLFW_RELEASE)
         spot_light_indicator = false;
+
+    //advance_lightin_control
+    if (key == GLFW_KEY_B && action == GLFW_PRESS)
+        advance_lighting_indicator = true;
+    if (key == GLFW_KEY_B && action == GLFW_RELEASE)
+        advance_lighting_indicator = false;
 
 
 
