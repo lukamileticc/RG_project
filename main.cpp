@@ -103,9 +103,9 @@ int main(){
     glEnable(GL_DEPTH_TEST);
 
     //face culling
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
-    glDisable(GL_CULL_FACE);
+//    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+//    glDisable(GL_CULL_FACE);
 
     //Inicijalizujemo imGui
     IMGUI_CHECKVERSION();
@@ -301,6 +301,8 @@ int main(){
         glDrawArrays(GL_TRIANGLES,0,30);
 
 
+        //ovde ukljucujemo face culling
+        glEnable(GL_CULL_FACE);
 //ISCRTAVAMO KOCKE
         lightingShader.use();
         projection = glm::perspective(glm::radians(camera.Fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -329,7 +331,8 @@ int main(){
 //            glDrawElements(GL_TRIANGLES,36,GL_UNSIGNED_INT,0);
 //            std::cout << "Nacrtao sam " << i << std::endl;
         }
-
+        //ISKLJUCUJEMO face culling
+        glDisable(GL_CULL_FACE);
 
 //ISCRTAVAMO PUSKU
         puskaShader.use();
