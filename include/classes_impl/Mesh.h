@@ -25,6 +25,8 @@ public:
     std::vector<unsigned> indices;
     std::vector<Texture> textures;
 
+    std::string glslIdentifierPrefix;
+
     void Draw(Shader &shader){
         //ovde povezujemo teksture
         shader.use();
@@ -33,29 +35,37 @@ public:
         unsigned specularNr = 1;
         unsigned normalNr = 1;
         unsigned heightNr = 1;
-
-        std::string buffer; //texture_specular
-        buffer.reserve(64);
+//
+//        std::string buffer; //texture_specular
+//        buffer.reserve(64);
         for(unsigned  i = 0; i < textures.size(); ++i){
 
-            buffer.append(textures[i].type);
+            std::string number;
+            std::string name = textures[i].type;
+
+
+//            buffer.append(textures[i].type);
             if(textures[i].type == "texture_diffuse"){
-                buffer.append(std::to_string(diffuseNr++));
+//                buffer.append(std::to_string(diffuseNr++));
+                number = std::to_string(diffuseNr++);
             }
             else if(textures[i].type == "texture_specular"){
-                buffer.append(std::to_string(specularNr++)); //texture_specular1
+//                buffer.append(std::to_string(specularNr++)); //texture_specular1
+                number = std::to_string(specularNr++);
             }
             else if(textures[i].type == "texture_normal"){
-                buffer.append(std::to_string(normalNr++));
+//                buffer.append(std::to_string(normalNr++));
+                number = std::to_string(normalNr++);
             }
             else if(textures[i].type == "texture_height"){
-                buffer.append(std::to_string(heightNr++));
+//                buffer.append(std::to_string(heightNr++));
+                number = std::to_string(heightNr++);
             }
 
             glActiveTexture(GL_TEXTURE0 + i);
-            shader.setUniform1int(buffer.c_str(),i);
+            shader.setUniform1int((glslIdentifierPrefix + name + number).c_str(),i);
             glBindTexture(GL_TEXTURE_2D, textures[i].id);
-            buffer.clear();
+//            buffer.clear();
 
         }
 

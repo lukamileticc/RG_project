@@ -47,11 +47,11 @@ public:
             meshes[i].Draw(shader);
     }
 
-//    void SetShaderTextureNamePrefix(std::string prefix) {
-//        for (Mesh& mesh: meshes) {
-//            mesh.glslIdentifierPrefix = prefix;
-//        }
-//    }
+    void SetShaderTextureNamePrefix(std::string prefix) {
+        for (Mesh& mesh: meshes) {
+            mesh.glslIdentifierPrefix = prefix;
+        }
+    }
 private:
     // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
     void loadModel(string const &path)
