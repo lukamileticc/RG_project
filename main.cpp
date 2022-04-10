@@ -175,11 +175,13 @@ int main(){
 
     //ovde ucitavamo kocku
     unsigned int VAO_kocke = ucitaj_kocke();
+    stbi_set_flip_vertically_on_load(true);
     unsigned texKocke = loadTexture("../resources/textures/brick.jpg");
-    unsigned texKockeFrame = loadTexture("../resources/textures/metal_frame.jpg");
+    unsigned texKockeFrame = loadTexture("../resources/textures/frame_specular.png");
+    stbi_set_flip_vertically_on_load(false);
     lightingShader.use();
     lightingShader.setUniform1int("material.texture_diffuse1",0);
-//    lightingShader.setUniform1int("material.texture_specular1",1);
+    lightingShader.setUniform1int("material.texture_specular1",1);
     //zelimo da imamo vise kocki na razlicitm pozicijama
     glm::vec3 cubePositions[] = {
             glm::vec3(17.0f, -4.5f, -30.0f),
@@ -320,8 +322,8 @@ int main(){
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texKocke);
-//        glActiveTexture(GL_TEXTURE1);
-//        glBindTexture(GL_TEXTURE_2D,texKockeFrame);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D,texKockeFrame);
 
         //ovde kazemo opengl da treba da nacrta sve to sto smo gore poslali na gpu
         //ovde opet aktiviramo interpretaciju podataka
@@ -774,11 +776,14 @@ void keyCallBack(GLFWwindow *window, int key, int scancode, int action, int mods
         spot_light_indicator = false;
 
     //advance_lightin_control
-    if (key == GLFW_KEY_B && action == GLFW_PRESS)
+    if (key == GLFW_KEY_B && action == GLFW_PRESS) {
         advance_lighting_indicator = true;
-    if (key == GLFW_KEY_B && action == GLFW_RELEASE)
+        std::cout << "advanced light start" <<std::endl;
+    }
+    if (key == GLFW_KEY_B && action == GLFW_RELEASE) {
         advance_lighting_indicator = false;
-
+        std::cout << "advanced light finished" << std::endl;
+    }
 
 
 }
