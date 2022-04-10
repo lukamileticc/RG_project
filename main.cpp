@@ -119,7 +119,7 @@ int main(){
     Shader prostorijaShader("../resources/shaders/prostorija.vs","../resources/shaders/prostorija.fs");
     Shader puskaShader("../resources/shaders/puska.vs","../resources/shaders/puska.fs");
     Shader skyboxShader("../resources/shaders/skybox.vs","../resources/shaders/skybox.fs");
-    Shader kockaShader("../resources/shaders/kocka.vs","../resources/shaders/kocka.fs");
+//    Shader kockaShader("../resources/shaders/kocka.vs","../resources/shaders/kocka.fs");
     Shader swatShader("../resources/shaders/swat.vs","../resources/shaders/swat.fs");
     Shader bulletShader("../resources/shaders/swat.vs","../resources/shaders/swat.fs");
     Shader lightCubeShader("../resources/shaders/light_cube.vs", "../resources/shaders/light_cube.fs");
@@ -175,9 +175,9 @@ int main(){
     unsigned int VAO_kocke = ucitaj_kocke();
     unsigned texKocke = loadTexture("../resources/textures/brick.jpg");
     unsigned texKockeFrame = loadTexture("../resources/textures/metal_frame.jpg");
-    kockaShader.use();
-    kockaShader.setUniform1int("tex0",0);
-    kockaShader.setUniform1int("tex1",1);
+    swatShader.use();
+    swatShader.setUniform1int("material.texture_diffuse1",0);
+//    swatShader.setUniform1int("material.texture_specular1",1);
     //zelimo da imamo vise kocki na razlicitm pozicijama
     glm::vec3 cubePositions[] = {
             glm::vec3(17.0f, -4.5f, -30.0f),
@@ -295,18 +295,18 @@ int main(){
 
 
 //ISCRTAVAMO KOCKE
-        kockaShader.use();
+        swatShader.use();
         projection = glm::perspective(glm::radians(camera.Fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        kockaShader.setUniformMat4("projection", projection);
+        swatShader.setUniformMat4("projection", projection);
         //ovde cemo postaviti pomerajucu kameru
         //drugi argument gde kamera gleda
         view = camera.getViewMatrix();
-        kockaShader.setUniformMat4("view",view);
+        swatShader.setUniformMat4("view",view);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texKocke);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D,texKockeFrame);
+//        glActiveTexture(GL_TEXTURE1);
+//        glBindTexture(GL_TEXTURE_2D,texKockeFrame);
 
         //ovde kazemo opengl da treba da nacrta sve to sto smo gore poslali na gpu
         //ovde opet aktiviramo interpretaciju podataka
@@ -317,8 +317,9 @@ int main(){
 //            float angle = glfwGetTime() * (i + 1);
 //            model = glm::rotate(model, glm::radians(angle), glm::vec3(0.5f,0.7f,0.0f));
             model = glm::scale(model,glm::vec3(3.0f,3.0f,3.0f));
-            kockaShader.setUniformMat4("model",model);
-            glDrawElements(GL_TRIANGLES,36,GL_UNSIGNED_INT,0);
+            swatShader.setUniformMat4("model",model);
+            glDrawArrays(GL_TRIANGLES,0,36);
+//            glDrawElements(GL_TRIANGLES,36,GL_UNSIGNED_INT,0);
 //            std::cout << "Nacrtao sam " << i << std::endl;
         }
 
@@ -415,7 +416,7 @@ int main(){
     prostorijaShader.deleteProgram();
     skyboxShader.deleteProgram();
     puskaShader.deleteProgram();
-    kockaShader.deleteProgram();
+//    kockaShader.deleteProgram();
     swatShader.deleteProgram();
     bulletShader.deleteProgram();
     lightCubeShader.deleteProgram();
@@ -745,89 +746,90 @@ void keyCallBack(GLFWwindow *window, int key, int scancode, int action, int mods
 unsigned int ucitaj_kocke() {
 
     float vertices[] = {
+            // positions          // normals           // texture coords
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
+            0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  0.0f,
+            0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+            0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f,  0.0f,
 
-            //jedna strana kocke
-            //   x   y      z     offset
-            -0.5f , -0.5f, 0.0f, 0.0f, 0.0f, //bottom left
-            0.5f, -0.5f, 0.0f, 1.0f, 0.0f,//bottom right
-            -0.5f,0.5f,0.0f, 0.0f, 1.0f,//top left
-            0.5f, 0.5f, 0.0f, 1.0f, 1.0f, //top right
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  1.0f,  1.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,  0.0f,  0.0f,
 
-            //druga strana kocke
-            0.5f, -0.5f, 0.0f, 0.0f, 0.0f,//bottom right
-            0.5f, 0.5f, 0.0f, 1.0f, 0.0f, //top right
-            0.5f, -0.5f, -1.0f, 0.0f, 1.0f,//bottom right
-            0.5f, 0.5f, -1.0f, 1.0f, 1.0f, //top right
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-            //treca strana kocke
-            -0.5f , -0.5f, 0.0f, 0.0f, 1.0f, //bottom left
-            -0.5f,0.5f,0.0f, 1.0f, 1.0f,//top left
-            -0.5f , -0.5f, -1.0f, 0.0f, 0.0f, //bottom left
-            -0.5f,0.5f,-1.0f, 1.0f, 0.0f,//top left
+            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
+            0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f,
+            0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  1.0f,
+            0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f,
 
-            //cevrta strana kocke
-            //   x   y      z     offset
-            -0.5f , -0.5f, -1.0f, 0.0f, 1.0f, //bottom left
-            0.5f, -0.5f, -1.0f, 1.0f, 1.0f,//bottom right
-            -0.5f,0.5f,-1.0f, 0.0f, 0.0f,//top left
-            0.5f, 0.5f, -1.0f, 1.0f, 0.0f, //top right
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
+            0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  1.0f,
+            0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f,  1.0f,
 
-            //peta strana kocke
-            -0.5f,0.5f,0.0f, 0.0f, 0.0f,//top left
-            0.5f, 0.5f, 0.0f, 0.0f, 1.0f, //top right
-            -0.5f,0.5f,-1.0f, 1.0f, 0.0f,//top left
-            0.5f, 0.5f, -1.0f, 1.0f, 1.0f, //top right
-
-            //sestra strana kocke
-            -0.5f,-0.5f,0.0f, 0.0f, 1.0f,//bottom left
-            0.5f, -0.5f, 0.0f, 0.0f, 0.0f, //bottom right
-            -0.5f,-0.5f,-1.0f, 1.0f, 1.0f,//bottom left
-            0.5f, -0.5f, -1.0f, 1.0f, 0.0f, //bottom right
-
-
-
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+            0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  1.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
-    unsigned  indices[] {
-            //frist
-            0,1,2,
-            // second
-            1,2,3,
-            //druga strana kocke
-            4,5,6,
-            5,6,7,
-            //treca strana
-            8,9,10,
-            9,10,11,
-            //cevrta strana
-            12,13,14,
-            13,14,15,
-            //peta strana
-            16,17,18,
-            17,18,19,
-            //sesta strana
-            20,21,22,
-            21,22,23
-    };
+//    unsigned  indices[] {
+//            //frist
+//            0,1,2,
+//            // second
+//            1,2,3,
+//            //druga strana kocke
+//            4,5,6,
+//            5,6,7,
+//            //treca strana
+//            8,9,10,
+//            9,10,11,
+//            //cevrta strana
+//            12,13,14,
+//            13,14,15,
+//            //peta strana
+//            16,17,18,
+//            17,18,19,
+//            //sesta strana
+//            20,21,22,
+//            21,22,23
+//    };
 
     unsigned VBO,VAO,EBO;
     glGenVertexArrays(1,&VAO);
-    glBindVertexArray(VAO);
-
-
     glGenBuffers(1,&VBO);
-    glGenBuffers(1,&EBO);
+//    glGenBuffers(1,&EBO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER,sizeof(vertices),vertices,GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,EBO);
+//    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
+    glBindVertexArray(VAO);
     //ovde kazemo grafickoj sta ti podaci zapravo predstavljaju
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float),(void*)0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float),(void*)(3*sizeof(float)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     //Deaktiviramo ovaj objekat
 //    glBindBuffer(GL_ARRAY_BUFFER,0);
